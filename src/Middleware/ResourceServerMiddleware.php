@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author      Alex Bilbie <hello@alexbilbie.com>
  * @copyright   Copyright (c) Alex Bilbie
@@ -12,11 +13,12 @@ namespace League\OAuth2\Server\Middleware;
 use Exception;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResourceServer;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface as Middleware;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
-class ResourceServerMiddleware
-{
+class ResourceServerMiddleware implements Middleware {
     /**
      * @var ResourceServer
      */
@@ -25,20 +27,17 @@ class ResourceServerMiddleware
     /**
      * @param ResourceServer $server
      */
-    public function __construct(ResourceServer $server)
-    {
+    public function __construct(ResourceServer $server) {
         $this->server = $server;
     }
 
     /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
-     * @param callable               $next
+     * @param Request           $request
+     * @param RequestHandler    $handler
      *
-     * @return ResponseInterface
+     * @return Response
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next)
-    {
+    public function process(Request $request, RequestHandler $handler): Response {
         try {
             $request = $this->server->validateAuthenticatedRequest($request);
         } catch (OAuthServerException $exception) {
@@ -50,7 +49,6 @@ class ResourceServerMiddleware
             // @codeCoverageIgnoreEnd
         }
 
-        // Pass the request and response on to the next responder in the chain
-        return $next($request, $response);
+        return $handler->handle($request);
     }
 }
