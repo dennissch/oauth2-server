@@ -41,9 +41,11 @@ class ResourceServerMiddleware implements Middleware {
         try {
             $request = $this->server->validateAuthenticatedRequest($request);
         } catch (OAuthServerException $exception) {
+            $response = new Response();
             return $exception->generateHttpResponse($response);
             // @codeCoverageIgnoreStart
         } catch (Exception $exception) {
+            $response = new Response();
             return (new OAuthServerException($exception->getMessage(), 0, 'unknown_error', 500))
                 ->generateHttpResponse($response);
             // @codeCoverageIgnoreEnd
